@@ -9,7 +9,7 @@ output_dir: libs
 
 ```{r setup, echo=FALSE}
 # Step 1. load the dengue dataset ####
-path <- "/Users/fdzul/Library/CloudStorage/OneDrive-Personal/datasets/DGE/denv/2023/DENGUE2_.txt"
+path <- "/Users/fdzul/Library/CloudStorage/OneDrive-Personal/datasets/DGE/denv/2024/DENGUE2_.txt"
 x <- denhotspots::read_dengue_dataset(path = path,
                                       spatial_resolution = "country",
                                       status_caso = c(1, 2)) |>
@@ -63,6 +63,123 @@ mex_link |>
 > Con un click se proporcionan los mapas de riesgo de transmisión de dengue de los estados. Los estados en color azul tiene definido su riesdo de transmisión y el resto está en construción.
 
 ### [**Panorama Epidemiológico Dengue**]{style="color:#990000"}
+
+<html>
+<head>
+<style>
+</style>
+</head>
+<body>
+<div >
+  <h2></h2>
+  <p></p>
+
+<div style = "display: grid; width: 1px; grid-template-columns: 700px 700px; align-items: start; justify-content: space-between;">
+#### **<span style="color:blue"> Treemap de casos confirmados </span>**
+```{r treemap_national, out.width="100%", out.height="100%"}
+x  |>
+    dplyr::filter(ANO == 2024)  |>
+    dplyr::filter(!DES_EDO_RES %in% c("OTROS PAISES", 
+                                      "OTROS PAISES DE LATINOAMERICA",
+                                      "ESTADOS UNIDOS DE NORTEAMERICA"))  |>
+    dplyr::filter(DES_DIAG_FINAL %in% 
+                      c("DENGUE CON SIGNOS DE ALARMA", "DENGUE NO GRAVE", 
+                        "DENGUE GRAVE"))  |>
+    dplyr::group_by(DES_EDO_RES,DES_DIAG_FINAL)  |>
+    dplyr::summarise(value = dplyr::n(), 
+                     .groups = "drop")  |>
+    dplyr::mutate(DES_EDO_RES = stringr::str_to_title(DES_EDO_RES),
+                  DES_DIAG_FINAL = stringr::str_to_title(DES_DIAG_FINAL))  |>
+    dplyr::mutate(DES_DIAG_FINAL = factor(DES_DIAG_FINAL,
+                                          levels = c("Dengue Con Signos De Alarma",
+                                                     "Dengue Grave",
+                                                     "Dengue No Grave"),
+                                          labels = c("DSA", "DG", "DNG")))  |>
+    ggplot2::ggplot(ggplot2::aes(area = value, 
+                                 fill = DES_EDO_RES,
+                                 subgroup = DES_EDO_RES,
+                                 label = DES_DIAG_FINAL)) +
+    treemapify::geom_treemap() +
+    treemapify::geom_treemap_text(fontface = "italic", 
+                                  colour = "black", 
+                                  place = "bottom",
+                                  #alpha = 0.5,
+                                  grow = F) +
+    treemapify::geom_treemap_subgroup_text(place = "middle", 
+                                           colour = "White", 
+                                           #alpha = 0.8, 
+                                           grow = T)+
+    ggplot2::theme(legend.position = "none") +
+    ggplot2::scale_fill_viridis_d()
+```
+
+<div>
+#### **<span style="color:blue"> Casos confirmados y serotipos </span>**
+```{r casos_serotipos,out.width="100%", out.height="100%"}
+library(magrittr)
+boldenr::plot_state_serotype(dataset = x, 
+                                  year = 2024, 
+                                  x_serotype  = 0.5, 
+                                  y_serotype = 0.17, 
+                                  scale_serotype = 1.7)
+```
+</div>
+
+</div>
+
+#### **<span style="color:blue"> Casos Confirmados por Estado </span>**
+
+```{r heatmap_confirmados_state}
+heatmap_confirmados(dataset = x, 
+                    year = 2024, 
+                    size_text = 3, 
+                    alpha_text = .2,
+                    EDO = TRUE)
+```
+
+#### **<span style="color:blue"> Casos Confirmados por Estado </span>**
+```{r bumpmap_national_2024, out.width="100%", out.height="100%"}
+library(dplyr)
+static_bump_map(dataset = x,
+                year = "2024",
+                state = TRUE,
+                size_text_value = 2,
+                size_text = 2,
+                country_text_x = 0.5,
+                country_text_y = 0.8,
+                line_size = 1.5,
+                pal_vir = "viridis")
+```
+
+
+#### **<span style="color:blue"> Casos Confirmados por Municipio </span>**
+```{r heatmap_confirmados_mun}
+heatmap_dengue(dataset = x,
+               state = NULL,
+               year = "2024",
+               hospitalizados = FALSE,
+               status = 2)
+```
+
+
+#### **<span style="color:blue"> Casos Hospitalizados por Municipio </span>**
+```{r heatmap_hospitalizados_mun}
+heatmap_dengue(dataset = x,
+               state = NULL,
+               year = "2024",
+               hospitalizados = TRUE)
+```
+
+#### **<span style="color:blue"> Canal Epidemiológico por Estado </span>**
+
+```{r epidemiological_channel_by_state}
+epidemiological_channel(data = x)
+```
+
+</div>
+
+</body>
+</html>
 
 
 ### [**Distribución del Dengue**]{style="color:#990000"}
